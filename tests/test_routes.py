@@ -176,6 +176,109 @@ class TestProductRoutes(TestCase):
         data = response.get_json()
         self.assertEqual(data["name"], test_product.name)
 
+     def test_update_product(self):
+    """It should update a product"""
+    # Create a product to test with
+    test_product = self._create_products(1)[0]
+    
+    # Define new data to update the product
+    updated_data = {
+        "name": "Updated Product",
+        "price": 20.00
+    }
+    
+    # Make a PUT request to the product endpoint with the product ID
+    response = self.client.put(f"/products/{test_product.id}", json=updated_data)
+    
+    # Assert the response status code is 200 OK
+    self.assertEqual(response.status_code, 200)
+    
+    # Assert that the product name is updated in the response data
+    data = response.get_json()
+    self.assertEqual(data["name"], updated_data["name"])
+
+
+       def test_delete_product(self):
+    """It should delete a product"""
+    # Create a product to test with
+    test_product = self._create_products(1)[0]
+    
+    # Make a DELETE request to the product endpoint with the product ID
+    response = self.client.delete(f"/products/{test_product.id}")
+    
+    # Assert the response status code is 200 OK
+    self.assertEqual(response.status_code, 200)
+    
+    # Make a GET request to ensure the product has been deleted
+    response = self.client.get(f"/products/{test_product.id}")
+    self.assertEqual(response.status_code, 404)
+
+
+         def test_list_all_products(self):
+    """It should list all products"""
+    response = self.client.get("/products")
+    
+    # Assert the response status code is 200 OK
+    self.assertEqual(response.status_code, 200)
+    
+    # Assert the response contains a list of products
+    data = response.get_json()
+    self.assertIsInstance(data, list)
+
+
+           def test_list_products_by_name(self):
+    """It should list products filtered by name"""
+    # Create a product to test with
+    test_product = self._create_products(1)[0]
+    
+    # Make a GET request to list products by name
+    response = self.client.get(f"/products?name={test_product.name}")
+    
+    # Assert the response status code is 200 OK
+    self.assertEqual(response.status_code, 200)
+    
+    # Assert that the response contains the correct product
+    data = response.get_json()
+    self.assertEqual(len(data), 1)  # Should return only one product
+    self.assertEqual(data[0]["name"], test_product.name)
+
+
+  def test_list_products_by_category(self):
+    """It should list products filtered by category"""
+    # Create a product to test with
+    test_product = self._create_products(1)[0]
+    
+    # Make a GET request to list products by category
+    response = self.client.get(f"/products?category={test_product.category}")
+    
+    # Assert the response status code is 200 OK
+    self.assertEqual(response.status_code, 200)
+    
+    # Assert that the response contains the correct product
+    data = response.get_json()
+    self.assertEqual(len(data), 1)  # Should return only one product in this category
+    self.assertEqual(data[0]["category"], test_product.category)
+
+
+    def test_list_products_by_availability(self):
+    """It should list products filtered by availability"""
+    # Create a product to test with
+    test_product = self._create_products(1)[0]
+    
+    # Make a GET request to list products by availability
+    response = self.client.get(f"/products?availability={test_product.availability}")
+    
+    # Assert the response status code is 200 OK
+    self.assertEqual(response.status_code, 200)
+    
+    # Assert that the response contains the correct product
+    data = response.get_json()
+    self.assertEqual(len(data), 1)  # Should return only one product with the availability status
+    self.assertEqual(data[0]["availability"], test_product.availability)
+
+
+    
+
     ######################################################################
     # Utility functions
     ######################################################################
