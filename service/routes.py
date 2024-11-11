@@ -94,29 +94,58 @@ def create_products():
     return jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
 
 
-######################################################################
-# L I S T   A L L   P R O D U C T S
-######################################################################
 
-#
-# PLACE YOUR CODE TO LIST ALL PRODUCTS HERE
-#
+
 
 ######################################################################
 # R E A D   A   P R O D U C T
 ######################################################################
 
-#
+
 # PLACE YOUR CODE HERE TO READ A PRODUCT
-#
+
+  @app.route("/products/<int:product_id>", methods=["GET"])
+    def get_products(product_id):
+    """
+    Retrieve a single Product
+
+    This endpoint will return a Product based on it's id
+    """
+    app.logger.info("Request to Retrieve a product with id [%s]", product_id)
+
+    product = Product.find(product_id)
+    if not product:
+        abort(status.HTTP_404_NOT_FOUND, f"Product with id '{product_id}' was not found.")
+
+    app.logger.info("Returning product: %s", product.name)
+    return product.serialize(), status.HTTP_200_OK
+
+
 
 ######################################################################
 # U P D A T E   A   P R O D U C T
 ######################################################################
 
-#
 # PLACE YOUR CODE TO UPDATE A PRODUCT HERE
-#
+
+
+ @app.route("/products/<int:product_id>", methods=["PUT"])
+def update_product(product_id):
+    """Update a product based on its ID"""
+    product = Product.query.get(product_id)
+    
+    if not product:
+        abort(404, description=f"Product with id {product_id} not found")
+    
+    # Update the product fields with the data from the request
+    data = request.get_json()
+    product.name = data["name"]
+    product.price = data["price"]
+    
+    db.session.commit()
+    
+    return jsonify(product.serialize()), 200
+
 
 ######################################################################
 # D E L E T E   A   P R O D U C T
@@ -126,3 +155,73 @@ def create_products():
 #
 # PLACE YOUR CODE TO DELETE A PRODUCT HERE
 #
+@app.route("/products/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+    """Delete a product based on its ID"""
+    product = Product.query.get(product_id)
+    
+    if not product:
+        abort(404, description=f"Product with id {product_id} not found")
+    
+    db.session.delete(product)
+    db.session.commit()
+    
+    return '', 200
+
+
+
+######################################################################
+# L I S T   A L L   P R O D U C T S
+######################################################################
+
+    @app.route("/products", methods=["GET"])
+   def list_products():
+    """List all products"""
+    products = Product.query.all()
+    
+    return jsonify([product.serialize() for product in products]), 200
+
+
+######################################################################
+# L I S T   A L L    B Y  N A M E
+######################################################################
+@app.route("/products", methods=["GET"])
+def list_products():
+    """List products with optional name filter"""
+    name = request.args.get("name")
+    if name:
+        products = Product.query.filter(Product.name.ilike(f"%{name}%")).all()
+    else:
+        products = Product.query.all()
+    
+    return jsonify([product.serialize() for product in products]), 200
+
+
+######################################################################
+# L I S T   B Y   C A T E G O R Y
+######################################################################
+@app.route("/products", methods=["GET"])
+def list_products():
+    """List products with optional category filter"""
+    category = request.args.get("category")
+    if category:
+        products = Product.query.filter(Product.category.ilike(f"%{category}%")).all()
+    else:
+        products = Product.query.all()
+    
+    return jsonify([product.serialize() for product in products]), 200
+
+
+######################################################################
+# L I S T   B Y  A V A I L I B I L I T Y
+######################################################################
+@app.route("/products", methods=["GET"])
+def list_products():
+    """List products with optional availability filter"""
+    availability = request.args.get("availability")
+    if availability:
+        products = Product.query.filter(Product.availability == availability).all()
+    else:
+        products = Product.query.all()
+    
+    return jsonify([product.serialize() for product in products]), 200
